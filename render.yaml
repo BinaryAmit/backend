@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: webrtc-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: daphne -b 0.0.0.0 -p $PORT webrtc_meet.asgi:application
+    autoDeploy: true
+    healthCheckPath: /admin/login/
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "True"
+      - key: RENDER
+        value: "True"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: webrtc-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: webrtc-redis
+          type: redis
+    preDeployCommand: python manage.py migrate; python manage.py collectstatic --noinput
+
+databases:
+  - name: webrtc-postgres
+    plan: free
+    databaseName: webrtc
+    user: webrtc
+
+redis:
+  - name: webrtc-redis
+    plan: free
