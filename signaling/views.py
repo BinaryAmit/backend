@@ -47,8 +47,14 @@ def join_room(request, code):
                 entry["credential"] = turn_credential
             iceServers.append(entry)
 
-    ws_scheme = "ws"
+    # Choose WebSocket scheme based on environment
+    if request.is_secure() or "vercel.app" in request.get_host():
+        ws_scheme = "wss"
+    else:
+        ws_scheme = "ws"
+
     host = request.get_host()
+
 
     return Response({
         "roomCode": room.code,
